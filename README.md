@@ -4,7 +4,7 @@ URL Shortener
 ## Technologies & Language
 - Golang
 - Chi
-- MYSQL DB
+- Mongo DB
 
 ## Use Cases
 - User Send URL to be Shortened
@@ -17,16 +17,13 @@ URL Shortener
 
 
 
-
-
 # Design
-![URL-Shortener.png](URL-Shortener.png)
-
+![Url-shortener.png](Url-shortener.png)
 # System Architecture
 The system Consists of the following components
 - API : Allow the users to interact with system 
 - Server : Receives the requests from the API for shortnening and redirecting 
-- Database: Store the short url coupled with the original one
+- Database: Store the short url coupled with the original one, store url metrics (hits time and where it has been hit from)
 
 ## Design Core Components
 
@@ -40,14 +37,30 @@ The system Consists of the following components
 
 #### Use Case : User Hits a shortened URL
 - The Client send a request to shortened URL
-- The server Receives the request and search the database for the original URL
-- The Database Returns the original URL if it exisits 
+- The server receives the request and search the database for the original URL
+- The database returns the original URL if it exisits 
+- update the metrics of the url
 - The server then redirect the client to original URL
 
+#### Use Case : User wants to get metrics about URL 
+The user might want to know metrics for his shortened url how many times it has been hit
+timeline of hits rate and most country hit the URL.
+- The client send request to get metrics for URL.
+- The server recevies request and search database for url
+- The database retrieve the url metrics
+- The server returns the metrics to the client
+
+#### Use Case: User want to get time series of URL hit rate
+The user want to get the day with the highest hit rate on his url compared with the other days
+starts from the day he stored his url until the day he requests to see metrics
+- The client send request to get metrics for URL.
+- The server receives request and search database for url
+- the metrics are retrieved and calculated
+- the server returns the metrics to the client
 
 ## Scale The Design
-![url-shortener-scaled.png](url-shortener-scaled.png)
+![scaled design.png](scaled%20design.png)
 
-To Scale our Design we need it to handle high load efficiently, so we add load balancer to divide the requests
-handle concurrent workers, also for faster reads we add caching layer to avoid database lookups for frequently
-called URLs
+To Scale our Design improve the speed of redirecting and shortening we can add
+Relational database (mysql) for faster reads and this will be used for store shortened url and redirections only
+and the analytics will be handled by document database (Mongo)
