@@ -9,6 +9,7 @@ URL Shortener
 ## Use Cases
 - User Send URL to be Shortened
 - User hits a shortened URL
+- User wants to see metrics for his url
 
 ## Constraints
 *State Constraints*
@@ -21,9 +22,9 @@ URL Shortener
 ![Url-shortener.png](Url-shortener.png)
 # System Architecture
 The system Consists of the following components
-- API : Allow the users to interact with system 
-- Server : Receives the requests from the API for shortnening and redirecting 
-- Database: Store the short url coupled with the original one, store url metrics (hits time and where it has been hit from)
+- API : Allow the users to interact with system (REST API)
+- Back End : Receives the requests from the API for shortnening and redirecting 
+- Database: Store the short url coupled with the original one, store url metrics (hits time and where it has been hit from) (NoSql)
 
 ## Design Core Components
 
@@ -32,7 +33,10 @@ The system Consists of the following components
 - The server recevies the request and send the URL to backend
 - Backend Shorten the URL and store the short URL coupled with original in the database
   - URL Shortener function:
-    - Check if the shortened URL collides with another in database
+
+    - Shorten the URL with MD5 or SHA1 algorithm
+    - Check if the shortened URL collides with another in database but doesn't map to the same original URL
+    - double hash the url or choose another algorithm for hashing
 - The Server then Returns the shortened URL to the client
 
 #### Use Case : User Hits a shortened URL
@@ -61,12 +65,12 @@ starts from the day he stored his url until the day he requests to see metrics
 ### Shortcoming
 - Increase in the data URL time metrics as it increases when time passes
 - Collision of URLs as requests increases
-- Two Users Shorten the same URL
 
 ## Scale The Design
 ![scaled design.png](scaled%20design.png)
 
 To Scale our Design improve the speed of redirecting and shortening we can add
 Relational database (mysql) for faster reads and this will be used for store shortened url and redirections only
-and the analytics will be handled by document database (Mongo)
+and the analytics will be handled by document database (Mongo), also to avoid the shortcomings we need to add
+expiration date for the URLs to avoid having obsolete data.
 
