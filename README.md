@@ -58,9 +58,15 @@ starts from the day he stored his url until the day he requests to see metrics
 - the metrics are retrieved and calculated
 - the server returns the metrics to the client
 
+### Shortcoming
+- Increase in the data URL time metrics as it increases when time passes
+- Collision of URLs as requests increases
+- Two Users Shorten the same URL
+
 ## Scale The Design
 ![scaled design.png](scaled%20design.png)
 
 To Scale our Design improve the speed of redirecting and shortening we can add
 Relational database (mysql) for faster reads and this will be used for store shortened url and redirections only
 and the analytics will be handled by document database (Mongo)
+
