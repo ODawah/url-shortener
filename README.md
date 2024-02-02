@@ -19,7 +19,7 @@ URL Shortener
 
 
 # Design
-![Url-shortener.png](Url-shortener.png)
+![design.png](design.png)
 # System Architecture
 The system Consists of the following components
 - API : Allow the users to interact with system (REST API)
