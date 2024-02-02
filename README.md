@@ -67,7 +67,7 @@ starts from the day he stored his url until the day he requests to see metrics
 - Collision of URLs as requests increases
 
 ## Scale The Design
-![scaled design.png](scaled%20design.png)
+![scaled design.png](scaled_design.png)
 
 To Scale our Design improve the speed of redirecting and shortening we can add
 Relational database (mysql) for faster reads and this will be used for store shortened url and redirections only
