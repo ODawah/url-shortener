@@ -64,13 +64,11 @@ starts from the day he stored his url until the day he requests to see metrics
 
 ### Shortcoming
 - Increase in the data URL time metrics as it increases when time passes
-- Collision of URLs as requests increases
 
 ## Scale The Design
 ![scaled design.png](scaled_design.png)
 
 To Scale our Design improve the speed of redirecting and shortening we can add
 Relational database (mysql) for faster reads and this will be used for store shortened url and redirections only
-and the analytics will be handled by document database (Mongo), also to avoid the shortcomings we need to add
-expiration date for the URLs to avoid having obsolete data.
+and the analytics will be handled by document database (Mongo)
 
