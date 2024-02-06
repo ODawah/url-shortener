@@ -19,12 +19,29 @@ URL Shortener
 
 
 # Design
-![design.png](design.png)
+![design](design.png)
 # System Architecture
 The system Consists of the following components
-- API : Allow the users to interact with system (REST API)
-- Back End : Receives the requests from the API for shortnening and redirecting 
-- Database: Store the short url coupled with the original one, store url metrics (hits time and where it has been hit from) (NoSql)
+
+### API
+We will use REST API Architecture as it's simple, flexible and scalable since it's stateless and easy to use
+
+### Back End
+The Backend will contain three services:
+- Shorten the URL
+- Redirect from short URL to the original
+- Return Analytics for the shortened URL
+
+### Database
+For Database, we decided to rely on NoSQL since we have high writes on database for analytics,
+and we can't use relational database because storing metrics for urls will result in unmaintainable big tables
+so the decision is to use MongoDB
+
+### Caching
+In Cache, we will store the URLs with high hit rate, when a user makes a request to a short URL
+this URL will be stored in cache for future usages and for the TTL of data in cache will be based on the frequency of usage of URL
+since the data rarely or never changes. we chose Redis for caching
+
 
 ## Design Core Components
 
@@ -41,7 +58,9 @@ The system Consists of the following components
 
 #### Use Case : User Hits a shortened URL
 - The Client send a request to shortened URL
-- The server receives the request and search the database for the original URL
+- The server receives the request and search in cache for the URL
+- Search the database for URL if it's not in cache
+  - Store the short url mapped with the original in cache
 - The database returns the original URL if it exisits 
 - update the metrics of the url
 - The server then redirect the client to original URL
@@ -64,11 +83,4 @@ starts from the day he stored his url until the day he requests to see metrics
 
 ### Shortcoming
 - Increase in the data URL time metrics as it increases when time passes
-
-## Scale The Design
-![scaled design.png](scaled_design.png)
-
-To Scale our Design improve the speed of redirecting and shortening we can add
-Relational database (mysql) for faster reads and this will be used for store shortened url and redirections only
-and the analytics will be handled by document database (Mongo)
 
