@@ -4,7 +4,8 @@ URL Shortener
 ## Technologies & Language
 - Golang
 - Chi
-- Mongo DB
+- Mysql
+- Redis Caching
 
 ## Use Cases
 - User Send URL to be Shortened
@@ -19,23 +20,72 @@ URL Shortener
 
 
 # Design
-![design](design.png)
+![url-shortener-design](url-shortener-design.png)
 # System Architecture
 The system Consists of the following components
 
-### API
+## API
 We will use REST API Architecture as it's simple, flexible and scalable since it's stateless and easy to use
-
-### Back End
-The Backend will contain three services:
+The API will contain three services:
 - Shorten the URL
 - Redirect from short URL to the original
 - Return Analytics for the shortened URL
 
+## Services
+### Shorten the URL
+The Shorten URL Service will take the long URL and shorten it by using MD5 hashing then choose the first 7 letters
+and hash them by base62 to turn it into short alphanumeric representation.
+The MD5 hashing will be applied on user IP address and timestamp, we chose those parameters to reduce the collision rate.
+
+After shortening the URL we store it in the database and map it with the original URL. but before storing into the database
+we need to check if the generated URL is unique, so we first check the database if the generate URL collides with another already stored
+if it collides generate another URL since it's based on time it'll change. if there's no collision store it in the database 
+mapped with the original URL.
+
+Why MD5 ?   
+we decided to choose MD5 over other better algorithms like sha-256 even if they have higher collision
+because it's faster since it returns 128-bit hash which is less than the better algorithms but also with an acceptable
+collision rate
+
+
+### Redirect from short URL to the original
+The Service will take the Short URL and search for it in Redis Cache if it exisits redirect the user
+the original URL mapped to it. If it doesn't exist in the Redis Cache, so we need to look for it in the database. The Cache will always contain the most frequently hit URLs, so for
+the first few hits for the url the service will have to get the URL from Mysql until it got enough hits frequently to be stored in cache.
+The Service Will Also Store The metadata for the requests the URL got for metrics calculations
+
+### Return Analytics For The shortened URL
+The Analytics returned will be calculated through query language the user will use to get full flexibility of the 
+analytics he wants. The analytics for the URL will be calculated from the Requests metadata stored for URL.
+We decided to store the metadata for all the requests the URL got to make the analytics flexible for the user
+for example the user wants to know The most hits comes from any region ?, 
+The hit rate for a specific time interval etc. we don't know what the user wants to see
+,so we let him take control of what analytic he wants to see.
+
+
+## Registration
+The App will register users with email and password so every user will see his shortened URLs
+and can keep track of its analytics but the for a certain time frame as the time goes the old data got deleted and the new data stored
+but if the user pay for a premium account he will get analytics for the URLs in a larger time frame.
+
 ### Database
-For Database, we decided to rely on NoSQL since we have high writes on database for analytics,
-and we can't use relational database because storing metrics for urls will result in unmaintainable big tables
-so the decision is to use MongoDB
+For Database, we decided to rely on MySQL and use Sharding to increase the performance of DB when data gets bigger
+
+#### Schema 
+![database-schema](database-schema.png)
+
+our database schema is simple it has 4 entities:
+- users 
+- subscriptions
+- URls
+- Requests
+
+we created the table users to separate users URls from each other, users table have column subscription_id
+it's a foreign key to know if the user is subscribed to the premium and when it starts and ends. 
+the table URLs is for storing the original URL mapped with the short one, the table have user_id column it's a foreign
+key for the user that owns this short url.
+the last table Requests is for storing the metadata of requests happen to URLs to calculate the metrics for URLs 
+
 
 ### Caching
 In Cache, we will store the URLs with high hit rate, when a user makes a request to a short URL
@@ -44,43 +94,25 @@ since the data rarely or never changes. we chose Redis for caching
 
 
 ## Design Core Components
-
 #### Use Case: User sends a URL to be shortened
 - The Client sends a Request to API with long URL to be shortened
 - The server recevies the request and send the URL to backend
 - Backend Shorten the URL and store the short URL coupled with original in the database
   - URL Shortener function:
-
-    - Shorten the URL with MD5 or SHA1 algorithm
-    - Check if the shortened URL collides with another in database but doesn't map to the same original URL
-    - double hash the url or choose another algorithm for hashing
+    - Shorten the URL with MD5 algorithm
+    - Check if the shortened URL collides with another in database
+    - Rehash the URL again until no collision happens
 - The Server then Returns the shortened URL to the client
 
 #### Use Case : User Hits a shortened URL
 - The Client send a request to shortened URL
 - The server receives the request and search in cache for the URL
 - Search the database for URL if it's not in cache
-  - Store the short url mapped with the original in cache
 - The database returns the original URL if it exisits 
 - update the metrics of the url
 - The server then redirect the client to original URL
 
 #### Use Case : User wants to get metrics about URL 
-The user might want to know metrics for his shortened url how many times it has been hit
-timeline of hits rate and most country hit the URL.
-- The client send request to get metrics for URL.
-- The server recevies request and search database for url
-- The database retrieve the url metrics
-- The server returns the metrics to the client
-
-#### Use Case: User want to get time series of URL hit rate
-The user want to get the day with the highest hit rate on his url compared with the other days
-starts from the day he stored his url until the day he requests to see metrics
-- The client send request to get metrics for URL.
-- The server receives request and search database for url
-- the metrics are retrieved and calculated
-- the server returns the metrics to the client
-
-### Shortcoming
-- Increase in the data URL time metrics as it increases when time passes
-
+The user will send the metrics he wants in query language to the service will then
+compile the query and call the database to get and calculate the metrics data user requested
+and return it.
