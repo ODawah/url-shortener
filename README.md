@@ -88,10 +88,30 @@ the last table Requests is for storing the metadata of requests happen to URLs t
 
 
 ### Caching
-In Cache, we will store the URLs with high hit rate, when a user makes a request to a short URL
-this URL will be stored in cache for future usages and for the TTL of data in cache will be based on the frequency of usage of URL
-since the data rarely or never changes. we chose Redis for caching
+In our caching strategy, we aim to optimize performance and reduce response time by leveraging a cache to store URLs with a high hit rate. When a user requests a short URL, we employ the following caching approach:
 
+1. Storing URLs with High Hit Rate:
+
+    - The cache is designed to store frequently accessed URLs that exhibit a high hit rate, indicating their popularity among users.
+    - By storing these popular URLs in the cache, we can significantly improve response times by retrieving their associated content directly from the cache.
+
+2. Time-to-Live (TTL) Management:
+
+   - Each URL stored in the cache is assigned a Time-to-Live (TTL) value of 30 seconds initially.
+   - When a URL is accessed again within its TTL period, its TTL is extended to maintain its presence in the cache.
+   - This approach ensures that frequently accessed URLs remain readily available in the cache, minimizing the need to retrieve them from the underlying data source repeatedly.
+   
+3. Handling Cache Miss:
+
+   - In the event of a cache miss (i.e., the requested URL is not found in the cache), we retrieve the URL's corresponding content from the database.
+   - Once fetched from the database, the URL and its associated content are stored in the cache using the same TTL value as before (30 seconds).
+   - This ensures that subsequent requests for the same URL can be served directly from the cache, further enhancing response times.
+
+4. Cache Key-Value Structure:
+
+   - The cache utilizes a key-value structure, where the short URL serves as the key, and the original URL is stored as the corresponding value.
+   - For example, a key-value pair in the cache might be "bit.ly/sdXTCs": "www.facebook.com".
+   - This key-value mapping enables efficient and quick lookups when serving requests for shortened URLs.
 
 ## Design Core Components
 #### Use Case: User sends a URL to be shortened
