@@ -25,7 +25,7 @@ URL Shortener
 The system Consists of the following components
 
 ## API
-We will use REST API Architecture as it's simple, flexible and scalable since it's stateless and easy to use
+We will use REST API Architecture using CHI framework as it's simple, flexible and scalable since it's stateless and easy to use
 The API will contain three services:
 - Shorten the URL
 - Redirect from short URL to the original
@@ -128,11 +128,25 @@ In our caching strategy, we aim to optimize performance and reduce response time
 - The Client send a request to shortened URL
 - The server receives the request and search in cache for the URL
 - Search the database for URL if it's not in cache
+  - store the URL in cache
 - The database returns the original URL if it exisits 
-- update the metrics of the url
+- Store the request metadata for analytics
 - The server then redirect the client to original URL
 
 #### Use Case : User wants to get metrics about URL 
 The user will send the metrics he wants in query language to the service will then
 compile the query and call the database to get and calculate the metrics data user requested
 and return it.
+
+1. User Query:
+- The user formulates a query in a specified query language, outlining the metrics they want to retrieve for the URLs.
+- The query may include parameters such as time range, filters, and specific metrics to be calculated.
+
+2. Query Compilation:
+- The service receives the user's query and performs query compilation to transform the query into a format suitable for the database.
+- During compilation, the service analyzes the query syntax, resolves references to URLs and metrics, and optimizes the query for efficient execution.
+
+3. Database Interaction:
+- Once the query is compiled, the service interacts with the database to execute the query and retrieve the necessary data.
+- The database contains the relevant information about URLs, such as access logs, timestamps, and associated metrics.
+- The service leverages database querying capabilities to fetch the required data based on the user's query.
