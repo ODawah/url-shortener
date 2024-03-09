@@ -42,6 +42,7 @@ we need to check if the generated URL is unique, so we first check the database 
 if it collides generate another URL since it's based on time it'll change. if there's no collision store it in the database 
 mapped with the original URL.
 
+<<<<<<< HEAD
 ### Choice of MD5 Hashing Algorithm
 
 In the design of our URL shortening system, we have opted for the MD5 hashing algorithm as opposed to more secure alternatives such as SHA-256. This decision is driven by specific considerations related to performance and the nature of our application.
@@ -86,6 +87,14 @@ The hit rate for a specific time interval etc. we don't know what the user wants
 ,so we let him take control of what analytic he wants to see.
 
 
+<<<<<<< HEAD
+=======
+## Registration
+The App will register users with email and password so every user will see his shortened URLs
+and can keep track of its analytics but the for a certain time frame as the time goes the old data got deleted and the new data stored
+but if the user pay for a premium account he will get analytics for the URLs in a larger time frame.
+
+>>>>>>> e67733ca1545de23d7451298e542f12527f8c2b3
 ### Database
 For Database, we decided to rely on MySQL and use Sharding to increase the performance of DB when data gets bigger
 
