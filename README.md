@@ -5,17 +5,43 @@ URL Shortener
 - Golang
 - Chi
 - Mysql
-- Redis Caching
+- Pub Sub system
 
 ## Use Cases
 - User Send URL to be Shortened
 - User hits a shortened URL
 - User wants to see metrics for his url
 
-## Constraints
-*State Constraints*
-- URL max length is 2048 Bytes 
-- shortened URL should be less than or equal 75 bytes (average number for URL length)
+## Constraints & Assumptions
+*State Assumptions*
+
+The App is expected to have 100M requests per month
+so the average per day is around 3.3M and 40 request per Second.
+
+- 100M requests per month
+
+    - Anticipating a high volume of requests (3.3M per day, 40 per second).
+    - System needs to handle this load efficiently.
+
+
+- Read-to-write ratio of 10:1
+
+  - Multiple reads for each URL created.
+  - Read operations are more frequent than writes.
+
+
+- Database record size
+  - Each record estimated to be around 283 bytes.
+  - Includes fields like ID, userID, short URL, created at, and original URL.
+  - Understanding data size aids in storage estimation and optimization.
+
+
+- Database read and write times
+
+  - Reads take ~= 10-20 milliseconds.
+  - Writes take ~= 50-100 milliseconds.
+  - Since that the operations takes few milliseconds and maybe reduced because of the indexing we decided not to use cache in the system 
+
 
 
 
@@ -46,13 +72,21 @@ The URL service has two functionalities.
 
    - When a user accesses a shortened URL, the service handles the redirection process.
    - First, the service checks if the shortened URL is present in the cache.
-   - If the URL is found in the cache, the service directly redirects the user to the corresponding original URL.
-   - If the URL is not found in the cache, the service searches for it in the database.
-   - If the URL is found in the database, the service stores it in the cache for future requests.
+   - The service searches for it in the database.
+   - If the URL is found in the database
+   - Send The Request metadata to the pub-sub system for analytics
    - The user is then redirected to the original URL associated with the shortened URL.
 
 
 ### Analytics service
+The URL Shortening Service integrates with a Pub/Sub system to handle incoming requests. Metadata for each request sent to a shortened URL is published to the Pub/Sub system, where it is processed to calculate aggregates. These aggregates are then stored in the database, providing users with efficient access to analytics.
+
+Users can retrieve specific insights from the database by querying the pre-calculated aggregates. This approach offers improved performance and scalability compared to calculating analytics on-demand.
+
+The stored aggregates enable users to gather insights such as the region with the highest number of hits, hit rate within specific time intervals, and other custom analytics. With this setup, users have the flexibility to define and retrieve the analytics they need without constraints.
+
+By leveraging the database's query capabilities, users can formulate tailored queries to extract desired analytics efficiently. This architecture empowers users to explore and derive insights based on their unique requirements, while ensuring optimal performance and scalability of the analytics service.
+
 
 
 ### Choice of MD5 Hashing Algorithm
@@ -85,17 +119,6 @@ This results in an extensive set of possible combinations, well exceeding a tril
 
 
 
-### Return Analytics For The shortened URL
-The URL Shortening Service provides a flexible analytics feature that allows users to retrieve specific insights based on the metadata stored for each request made to a shortened URL. The analytics are calculated using a query language, providing users with full flexibility to define the analytics they want to see.
-
-The metadata for all requests made to a URL is stored, enabling users to gather insights and perform various analyses. By storing comprehensive request metadata, the service ensures that users have the flexibility to extract specific analytics based on their requirements.
-
-For instance, users can inquire about the region with the highest number of hits, determine the hit rate within a specific time interval, or explore other custom analytics. Since the service cannot anticipate all possible analytics scenarios, it empowers users to take control and define the specific analytics they want to generate.
-
-By leveraging the query language, users can formulate tailored queries to extract the desired analytics from the stored metadata. This approach ensures that users have the freedom to explore and derive insights based on their unique needs, without being constrained by predefined analytics.
-
-
-
 
 ### Database
 For Database, we decided to rely on MySQL and use Sharding to increase the performance of DB when data gets bigger
@@ -115,7 +138,7 @@ the table URLs is for storing the original URL mapped with the short one, the ta
 key for the user that owns this short url.
 the last table Requests is for storing the metadata of requests happen to URLs to calculate the metrics for URLs 
 
-
+<!-- 
 ### Caching
 In our caching strategy, we aim to optimize performance and reduce response time by leveraging a cache to store URLs with a high hit rate. When a user requests a short URL, we employ the following caching approach:
 
@@ -141,8 +164,7 @@ In our caching strategy, we aim to optimize performance and reduce response time
    - The cache utilizes a key-value structure, where the short URL serves as the key, and the original URL is stored as the corresponding value.
    - For example, a key-value pair in the cache might be "bit.ly/sdXTCs": "www.facebook.com".
    - This key-value mapping enables efficient and quick lookups when serving requests for shortened URLs.
-
-
+-->
 
 ### Alerting & Error monitoring
 Implementing an alerting and error monitoring system helps enhance the reliability of the URL Shortening Service and reduce downtime. Here's how it benefits the application:
