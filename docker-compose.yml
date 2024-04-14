@@ -6,6 +6,7 @@ services:
       dockerfile: Dockerfile
     env_file:
       - .env
+    restart: on-failure
     depends_on:
       - db
     ports:

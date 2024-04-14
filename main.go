@@ -7,12 +7,10 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"log"
 	"net/http"
-	"time"
 )
 
 func main() {
-	time.Sleep(10 * time.Second)
-	err := persistence.IntializeSQL()
+	err := persistence.InitializeSQL()
 	if err != nil {
 		log.Fatal(err)
 	}

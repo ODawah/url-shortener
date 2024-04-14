@@ -9,7 +9,7 @@ var (
 	DB *sql.DB
 )
 
-func IntializeSQL() error {
+func InitializeSQL() error {
 	dbURI := os.Getenv("DB_URI")
 	db, err := sql.Open("mysql", dbURI)
 	if err != nil {
