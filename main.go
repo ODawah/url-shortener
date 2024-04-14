@@ -1,36 +1,25 @@
 package main
 
 import (
-	"database/sql"
-	"github.com/gin-gonic/gin"
+	"github.com/ODawah/url-shortener/persistence"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	_ "github.com/go-sql-driver/mysql"
 	"log"
 	"net/http"
-	"os"
 	"time"
 )
 
 func main() {
-	// Construct MySQL connection string
-	dbURI := os.Getenv("DB_URI")
-	// Open a connection to the database
-	time.Sleep(30 * time.Second)
-	db, err := sql.Open("mysql", dbURI)
+	time.Sleep(10 * time.Second)
+	err := persistence.IntializeSQL()
 	if err != nil {
-		log.Fatal("Failed to connect to the database:", err)
+		log.Fatal(err)
 	}
-	defer db.Close()
-
-	// Ping the database to verify the connection
-	err = db.Ping()
-	if err != nil {
-		log.Fatal("Failed to ping the database:", err)
-	}
-	r := gin.New()
-
-	r.GET("/", func(c *gin.Context) {
-		c.String(http.StatusOK, "Hello World")
+	r := chi.NewRouter()
+	r.Use(middleware.Logger)
+	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("hello, World!"))
 	})
-
-	r.Run()
+	log.Fatal(http.ListenAndServe(":8080", r))
 }
