@@ -15,11 +15,11 @@ func InitializeSQL() error {
 	if err != nil {
 		return err
 	}
-	defer db.Close()
 	// Ping the database to verify the connection
 	err = db.Ping()
 	if err != nil {
 		return err
 	}
+	DB = db
 	return err
 }
