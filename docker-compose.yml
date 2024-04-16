@@ -19,3 +19,8 @@ services:
       MYSQL_DATABASE: mydb
       MYSQL_USER: myuser
       MYSQL_PASSWORD: mypassword
+    volumes:
+      - db-data:/var/lib/mysql
+
+volumes:
+  db-data:
