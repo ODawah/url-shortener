@@ -32,7 +32,6 @@ func main() {
 			}
 		}
 	}()
-
 	r := server.Routes()
 	http.ListenAndServe(":8080", r)
 }
