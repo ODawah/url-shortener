@@ -17,5 +17,6 @@ func Routes() http.Handler {
 	r.Get("/users/{id}", handlers.FindUser())
 
 	r.Post("/urls", handlers.EncodeURL())
+	r.Get("/api/urls/{url}", handlers.Redirect())
 	return r
 }
