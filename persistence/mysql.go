@@ -13,8 +13,8 @@ var (
 	DB *gorm.DB
 )
 
-func InitializeSQL() error {
-	dbURI := fmt.Sprintf("%s?parseTime=true", os.Getenv("DB_URI"))
+func InitializeSQL(c *chan struct{}) error {
+	dbURI := fmt.Sprintf("%s?parseTime=true&charset=latin1", os.Getenv("DB_URI"))
 	db, err := sql.Open("mysql", dbURI)
 	if err != nil {
 		return err
@@ -33,5 +33,6 @@ func InitializeSQL() error {
 	if err != nil {
 		return err
 	}
+	*c <- struct{}{}
 	return err
 }

@@ -10,10 +10,6 @@ import (
 )
 
 func main() {
-	err := persistence.InitializeSQL()
-	if err != nil {
-		log.Println(err)
-	}
 	ticker := time.NewTicker(10 * time.Second)
 	quit := make(chan struct{})
 
@@ -21,12 +17,13 @@ func main() {
 		for {
 			select {
 			case <-ticker.C:
-				err = persistence.InitializeSQL()
+				err := persistence.InitializeSQL(&quit)
 				if err != nil {
 					log.Println(err)
 				}
 
 			case <-quit:
+				log.Println("RUNNING")
 				ticker.Stop()
 				return
 			}
