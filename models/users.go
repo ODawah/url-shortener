@@ -2,19 +2,19 @@ package models
 
 import (
 	"gorm.io/gorm"
-	"log"
 )
 
 type User struct {
 	gorm.Model
+	ID    uint   `gorm:"primaryKey"`
 	Name  string `json:"name"`
-	Email string `json:"email"`
+	Email string `gorm:"UNIQUE" json:"email"`
+	URLs  []URL  `gorm:"foreignKey:UserID"`
 }
 
 func (u *User) CreateUser(db *gorm.DB) error {
 	err := db.Create(&u).Error
 	if err != nil {
-		log.Println(err)
 		return err
 	}
 	return err
