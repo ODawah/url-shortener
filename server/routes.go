@@ -13,7 +13,9 @@ func Routes() http.Handler {
 
 	r.Get("/health", handlers.Healthcheck())
 
-	r.Post("/user", handlers.CreateUser())
-	r.Get("/user/{id}", handlers.FindUser())
+	r.Post("/users", handlers.CreateUser())
+	r.Get("/users/{id}", handlers.FindUser())
+
+	r.Post("/urls", handlers.EncodeURL())
 	return r
 }
