@@ -24,16 +24,19 @@ func (u *URL) CreateURL(db *gorm.DB) error {
 	if err != nil {
 		return err
 	}
-	err = u.EncodeURL()
-	if err != nil {
-		return err
-	}
-	err = db.Create(&u).Error
-	if err != nil {
-		if err.Error() == gorm.ErrDuplicatedKey.Error() {
-			return errors.New("Duplicated KEY")
+	for {
+		err = u.EncodeURL()
+		if err != nil {
+			return err
 		}
-		return err
+		err = db.Create(&u).Error
+		if err != nil {
+			if strings.Contains(err.Error(), "Duplicate entry") {
+				continue
+			}
+			return err
+		}
+		break
 	}
 	return nil
 }
@@ -67,8 +70,8 @@ func (u *URL) ValidateOriginalURL() error {
 	if err != nil {
 		return err
 	}
-	if strings.HasPrefix(u.Original, "https://") || strings.HasPrefix(u.Original, "http://") {
-		return errors.New(`the url should start with "http://" or "https://" `)
+	if !strings.HasPrefix(u.Original, "https://") && !strings.HasPrefix(u.Original, "http://") {
+		return errors.New(`the url must start with "http://" or "https://" `)
 	}
 
 	return err
