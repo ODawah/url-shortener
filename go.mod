@@ -3,6 +3,7 @@ module github.com/ODawah/url-shortener
 go 1.22.1
 
 require (
+	github.com/confluentinc/confluent-kafka-go v1.9.2
 	github.com/eknkc/basex v1.0.1
 	github.com/go-chi/chi/v5 v5.0.12
 	github.com/go-chi/render v1.0.3

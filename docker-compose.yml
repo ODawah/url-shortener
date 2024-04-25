@@ -4,6 +4,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    env_file:
+      - .env
     environment:
       - DB_URI
     depends_on:
@@ -20,7 +22,7 @@ services:
       MYSQL_USER: myuser
       MYSQL_PASSWORD: mypassword
     volumes:
-      - db-data:/var/lib/mysql
+      - db-data1:/var/lib/mysql
 
 volumes:
-  db-data:
+  db-data1:
