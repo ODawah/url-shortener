@@ -2,11 +2,12 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
+	"github.com/ODawah/url-shortener/kafka"
 	"github.com/ODawah/url-shortener/models"
 	"github.com/ODawah/url-shortener/persistence"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
+	"log"
 	"net/http"
 )
 
@@ -49,8 +50,32 @@ func Redirect() http.HandlerFunc {
 			render.JSON(w, r, map[string]string{"error": err.Error()})
 			return
 		}
-		OriginalURL := fmt.Sprintf("https://%s", url.Original)
-		http.Redirect(w, r, OriginalURL, http.StatusPermanentRedirect)
+		go func() {
+			RequestData := ExtractRequestData(r)
+			if RequestData.IP == "" {
+				log.Println("Error from Extract Request functions")
+				return
+			}
+			err = kafka.ProduceMessage(url.Short, RequestData)
+			if err != nil {
+				log.Println("error Producing message")
+				log.Println(err)
+				return
+			}
+			log.Println("Producer Sent the message")
+		}()
+
+		render.JSON(w, r, url)
 		return
 	}
+}
+
+func ExtractRequestData(r *http.Request) models.RequestData {
+	ip := r.RemoteAddr
+
+	host := r.Host
+
+	userAgent := r.UserAgent()
+
+	return models.RequestData{IP: ip, Host: host, Browser: userAgent}
 }
