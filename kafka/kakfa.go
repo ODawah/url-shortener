@@ -1,40 +1,30 @@
-package persistence
+package kafka
 
 import (
-	"encoding/json"
-	"github.com/ODawah/url-shortener/models"
 	"github.com/confluentinc/confluent-kafka-go/kafka"
+	"log"
+	"os"
 )
 
 const (
-	KafkaServer = "localhost:9092"
-	KafkaTopic  = "Requests-topic"
+	KafkaTopic = "requests-v1-topic"
 )
 
 var ProducerClient *kafka.Producer
 
 func InitializeProducer() error {
-	p, err := kafka.NewProducer(&kafka.ConfigMap{
-		"bootstrap.servers": KafkaServer,
+	var err error
+
+	ProducerClient, err = kafka.NewProducer(&kafka.ConfigMap{
+		"bootstrap.servers": os.Getenv("KAFKA_SERVER"),
+		"security.protocol": os.Getenv("KAFKA_PROTOCOL"),
+		"sasl.mechanisms":   os.Getenv("KAFKA_SASL_MECHANISM"),
+		"sasl.username":     os.Getenv("KAFKA_USERNAME"),
+		"sasl.password":     os.Getenv("KAFKA_PASSWORD"),
+		"acks":              os.Getenv("ACKS"),
 	})
 	if err != nil {
-		return err
-	}
-	ProducerClient = p
-	return nil
-}
-
-func ProduceMessage(msg models.RequestData) error {
-	value, err := json.Marshal(msg)
-	if err != nil {
-		return err
-	}
-	topic := KafkaTopic
-	err = ProducerClient.Produce(&kafka.Message{
-		TopicPartition: kafka.TopicPartition{Topic: &topic, Partition: kafka.PartitionAny},
-		Value:          value,
-	}, nil)
-	if err != nil {
+		log.Println("error Connecting Kafka", err)
 		return err
 	}
 	return nil

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/ODawah/url-shortener/kafka"
 	"github.com/ODawah/url-shortener/persistence"
 	"github.com/ODawah/url-shortener/server"
 	_ "github.com/go-sql-driver/mysql"
@@ -29,6 +30,18 @@ func main() {
 			}
 		}
 	}()
+
+	err := kafka.InitializeProducer()
+	if err != nil {
+		log.Println(err)
+	}
+	go func() {
+		err = kafka.InitializeConsumer()
+		if err != nil {
+			log.Println(err)
+		}
+	}()
+
 	r := server.Routes()
 	http.ListenAndServe(":8080", r)
 }
